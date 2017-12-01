@@ -7,6 +7,7 @@
 
 package com.rjfun.cordova.plugin.nativeaudio;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
@@ -32,7 +33,21 @@ public class NativeAudioAsset
 			voices.add( voice );
 		}
 	}
-	
+
+	public NativeAudioAsset(FileDescriptor afd, int numVoices, float volume) throws IOException
+	{
+		voices = new ArrayList<NativeAudioAssetComplex>();
+
+		if ( numVoices < 0 )
+			numVoices = 1;
+
+		for ( int x=0; x<numVoices; x++)
+		{
+			NativeAudioAssetComplex voice = new NativeAudioAssetComplex(afd, volume);
+			voices.add( voice );
+		}
+	}
+
 	public void play(Callable<Void> completeCb) throws IOException
 	{
 		NativeAudioAssetComplex voice = voices.get(playIndex);

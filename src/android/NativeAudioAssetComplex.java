@@ -10,6 +10,7 @@ package com.rjfun.cordova.plugin.nativeaudio;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 
+import java.io.FileDescriptor;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -33,10 +34,22 @@ public class NativeAudioAssetComplex implements OnPreparedListener, OnCompletion
 	{
 		state = INVALID;
 		mp = new MediaPlayer();
+		mp.setOnCompletionListener(this);
+		mp.setOnPreparedListener(this);
+		mp.setDataSource( afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+		mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		mp.setVolume(volume, volume);
+		mp.prepare();
+	}
+
+	public NativeAudioAssetComplex( FileDescriptor fd, float volume)  throws IOException
+	{
+		state = INVALID;
+		mp = new MediaPlayer();
         mp.setOnCompletionListener(this);
         mp.setOnPreparedListener(this);
-		mp.setDataSource( afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-		mp.setAudioStreamType(AudioManager.STREAM_MUSIC); 
+		mp.setDataSource(fd);
+		mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		mp.setVolume(volume, volume);
 		mp.prepare();
 	}
@@ -49,7 +62,7 @@ public class NativeAudioAssetComplex implements OnPreparedListener, OnCompletion
 	
 	private void invokePlay( Boolean loop )
 	{
-		Boolean playing = ( mp.isLooping() || mp.isPlaying() );
+		Boolean playing = mp.isPlaying();
 		if ( playing )
 		{
 			mp.pause();
@@ -74,7 +87,7 @@ public class NativeAudioAssetComplex implements OnPreparedListener, OnCompletion
 	{
 		try
 		{
-    				if ( mp.isLooping() || mp.isPlaying() )
+    				if ( mp.isPlaying() )
 				{
 					mp.pause();
 					return true;
@@ -96,7 +109,7 @@ public class NativeAudioAssetComplex implements OnPreparedListener, OnCompletion
 	{
 		try
 		{
-			if ( mp.isLooping() || mp.isPlaying() )
+			if ( mp.isPlaying() )
 			{
 				state = INVALID;
 				mp.pause();
@@ -162,6 +175,7 @@ public class NativeAudioAssetComplex implements OnPreparedListener, OnCompletion
 			this.state = INVALID;
 			try {
 				this.stop();
+				if (completeCallback != null)
                 completeCallback.call();
 			}
 			catch (Exception e)
